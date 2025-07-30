@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import { getTodos, USER_ID } from './api/todos';
 import { Todo } from './types/Todo';
@@ -23,22 +23,25 @@ export const App: React.FC = () => {
     }, 3000);
   };
 
-  const visibleTodos = (todosArr: Todo[]) => {
-    let filteredTodos = todosArr;
+  const visibleTodos = useCallback(
+    (todosArr: Todo[]) => {
+      let filteredTodos = todosArr;
 
-    switch (status) {
-      case 'active':
-        filteredTodos = filteredTodos.filter(todo => !todo.completed);
-        break;
-      case 'completed':
-        filteredTodos = filteredTodos.filter(todo => todo.completed);
-        break;
-      default:
-        break;
-    }
+      switch (status) {
+        case 'active':
+          filteredTodos = filteredTodos.filter(todo => !todo.completed);
+          break;
+        case 'completed':
+          filteredTodos = filteredTodos.filter(todo => todo.completed);
+          break;
+        default:
+          break;
+      }
 
-    setTodos(filteredTodos);
-  };
+      setTodos(filteredTodos);
+    },
+    [status],
+  );
 
   useEffect(() => {
     getTodos()
@@ -46,7 +49,6 @@ export const App: React.FC = () => {
         // setTodos(todos);
         if (todosResponse.length === 0) {
           handleErrorMessage('Unable to load todos');
-          // setErrorMessage('Unable to load todos');
         }
 
         visibleTodos(todosResponse);
@@ -54,10 +56,9 @@ export const App: React.FC = () => {
       .catch(err => {
         handleErrorMessage('Unable to load todos');
 
-        // setErrorMessage('Unable to load todos');
         throw err;
       });
-  }, [status]);
+  }, [status, visibleTodos]);
 
   if (!USER_ID) {
     return <UserWarning />;
